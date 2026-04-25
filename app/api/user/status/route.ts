@@ -10,8 +10,21 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await currentUser()
-    const email = user?.emailAddresses?.[0]?.emailAddress ?? ''
+    let email = ''
+    try {
+      const user = await currentUser()
+      email = user?.emailAddresses?.[0]?.emailAddress ?? ''
+    } catch {
+      // fall back to Supabase
+    }
+    if (!email) {
+      const { data: dbU } = await getSupabaseAdmin()
+        .from('users')
+        .select('email')
+        .eq('clerk_id', userId)
+        .single()
+      email = dbU?.email ?? ''
+    }
     const isAdmin = email === ADMIN_EMAIL
 
     if (isAdmin) {

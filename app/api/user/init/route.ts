@@ -9,8 +9,13 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await currentUser()
-    const email = user?.emailAddresses?.[0]?.emailAddress ?? ''
+    let email = ''
+    try {
+      const user = await currentUser()
+      email = user?.emailAddresses?.[0]?.emailAddress ?? ''
+    } catch {
+      // ignore — email will be empty string, fine for init
+    }
 
     const supabase = getSupabaseAdmin()
     const { data: existing } = await supabase

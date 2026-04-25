@@ -32,8 +32,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await currentUser()
-    const userEmail = user?.emailAddresses?.[0]?.emailAddress ?? ''
+    let userEmail = ''
+    try {
+      const user = await currentUser()
+      userEmail = user?.emailAddresses?.[0]?.emailAddress ?? ''
+    } catch {
+      // currentUser() can fail if Clerk's API is unreachable — fall back to Supabase
+    }
+    if (!userEmail) {
+      const { data: dbUserEmail } = await getSupabaseAdmin()
+        .from('users')
+        .select('email')
+        .eq('clerk_id', userId)
+        .single()
+      userEmail = dbUserEmail?.email ?? ''
+    }
     const isAdmin = userEmail === ADMIN_EMAIL
 
     const { messages, quizMode } = await req.json()
