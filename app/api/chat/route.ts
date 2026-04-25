@@ -1,8 +1,5 @@
-import { auth, currentUser } from '@clerk/nextjs/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { ADMIN_EMAIL, FREE_QUESTIONS_LIMIT } from '@/lib/constants'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
@@ -27,71 +24,13 @@ QUIZ MODE IS ACTIVE: Instead of explaining concepts directly, first test the stu
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    let userEmail = ''
-    try {
-      const user = await currentUser()
-      userEmail = user?.emailAddresses?.[0]?.emailAddress ?? ''
-    } catch {
-      // currentUser() can fail if Clerk's API is unreachable — fall back to Supabase
-    }
-    if (!userEmail) {
-      const { data: dbUserEmail } = await getSupabaseAdmin()
-        .from('users')
-        .select('email')
-        .eq('clerk_id', userId)
-        .single()
-      userEmail = dbUserEmail?.email ?? ''
-    }
-    const isAdmin = userEmail === ADMIN_EMAIL
-
     const { messages, quizMode } = await req.json()
-
-    if (!isAdmin) {
-      const supabase = getSupabaseAdmin()
-      const { data: dbUser, error } = await supabase
-        .from('users')
-        .select('questions_used, subscription_tier')
-        .eq('clerk_id', userId)
-        .single()
-
-      if (error || !dbUser) {
-        await supabase.from('users').insert({
-          clerk_id: userId,
-          email: userEmail,
-          questions_used: 1,
-          subscription_tier: 'free',
-        })
-      } else if (dbUser.subscription_tier === 'free' && dbUser.questions_used >= FREE_QUESTIONS_LIMIT) {
-        return NextResponse.json(
-          { error: 'FREE_LIMIT_REACHED', questionsUsed: dbUser.questions_used },
-          { status: 402 }
-        )
-      } else {
-        await supabase
-          .from('users')
-          .update({ questions_used: dbUser.questions_used + 1 })
-          .eq('clerk_id', userId)
-      }
-    }
-
     const systemPrompt = quizMode ? QUIZ_SYSTEM_PROMPT : SYSTEM_PROMPT
 
     const stream = anthropic.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
-      system: [
-        {
-          type: 'text',
-          text: systemPrompt,
-          // @ts-expect-error cache_control is valid for prompt caching
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
+      system: systemPrompt,
       messages: messages.map((m: { role: string; content: string }) => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
