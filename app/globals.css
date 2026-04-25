@@ -1,0 +1,171 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap');
+@import 'katex/dist/katex.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --gradient-start: #7c3aed;
+    --gradient-end: #3b82f6;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #ffffff;
+    color: #1a1a2e;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Nunito', sans-serif;
+  }
+}
+
+@layer components {
+  .gradient-text {
+    @apply bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600 bg-clip-text text-transparent;
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #3b82f6 100%);
+    background-size: 400% 400%;
+    animation: gradient 8s ease infinite;
+  }
+
+  .hero-gradient {
+    background: radial-gradient(ellipse at top left, rgba(124, 58, 237, 0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at bottom right, rgba(59, 130, 246, 0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at center, rgba(245, 158, 11, 0.05) 0%, transparent 70%),
+                #ffffff;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-violet-600 to-blue-600 text-white font-bold px-8 py-3 rounded-full
+           hover:shadow-lg hover:shadow-violet-200 transition-all duration-300 hover:-translate-y-0.5
+           active:translate-y-0;
+  }
+
+  .btn-outline {
+    @apply border-2 border-violet-600 text-violet-600 font-bold px-8 py-3 rounded-full
+           hover:bg-violet-50 transition-all duration-300;
+  }
+
+  .section-padding {
+    @apply py-20 px-4 md:px-8 lg:px-16;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c084fc;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9333ea;
+}
+
+/* Prose styles for AI messages */
+.prose-custom {
+  color: #1a1a2e;
+  line-height: 1.75;
+}
+
+.prose-custom h1,
+.prose-custom h2,
+.prose-custom h3 {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose-custom p {
+  margin-bottom: 0.75em;
+}
+
+.prose-custom ul, .prose-custom ol {
+  margin-left: 1.5em;
+  margin-bottom: 0.75em;
+}
+
+.prose-custom ul { list-style-type: disc; }
+.prose-custom ol { list-style-type: decimal; }
+
+.prose-custom li { margin-bottom: 0.25em; }
+
+.prose-custom code {
+  background: #f3e8ff;
+  color: #7c3aed;
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  font-size: 0.875em;
+}
+
+.prose-custom pre {
+  background: #1e1b4b;
+  color: #e2e8f0;
+  padding: 1em 1.25em;
+  border-radius: 12px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.prose-custom pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.prose-custom blockquote {
+  border-left: 4px solid #7c3aed;
+  padding-left: 1em;
+  color: #6b7280;
+  font-style: italic;
+  margin: 1em 0;
+}
+
+.prose-custom strong {
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.prose-custom table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.prose-custom th {
+  background: #f3e8ff;
+  padding: 0.5em 1em;
+  text-align: left;
+  font-weight: 600;
+}
+
+.prose-custom td {
+  padding: 0.5em 1em;
+  border-top: 1px solid #e5e7eb;
+}
