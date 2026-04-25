@@ -1,6 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const maxDuration = 60
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
 const SYSTEM_PROMPT = `You are TutorAI, a friendly, patient, and expert AI tutor for students of all ages and skill levels. You help with any academic subject including math, science, history, English, coding, languages, test prep, and more.
