@@ -24,19 +24,67 @@ const QUIZ_SYSTEM_PROMPT = `${SYSTEM_PROMPT}
 
 QUIZ MODE IS ACTIVE: Instead of explaining concepts directly, first test the student's knowledge with a targeted question. If they answer incorrectly or seem stuck, give a hint. Guide them to discover the answer rather than giving it away. Celebrate when they get it right!`
 
+type Attachment = {
+  name: string
+  type: 'image' | 'document' | 'text'
+  mediaType: string
+  data: string // base64
+}
+
+type IncomingMessage = {
+  role: 'user' | 'assistant'
+  content: string
+  attachments?: Attachment[]
+}
+
+function buildContent(msg: IncomingMessage) {
+  if (!msg.attachments || msg.attachments.length === 0) {
+    return msg.content
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const blocks: any[] = []
+
+  for (const att of msg.attachments) {
+    if (att.type === 'image') {
+      blocks.push({
+        type: 'image',
+        source: { type: 'base64', media_type: att.mediaType, data: att.data },
+      })
+    } else if (att.type === 'document') {
+      blocks.push({
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: att.data },
+      })
+    } else {
+      // text / code file — decode and inline
+      const text = Buffer.from(att.data, 'base64').toString('utf-8')
+      blocks.push({ type: 'text', text: `[File: ${att.name}]\n\`\`\`\n${text}\n\`\`\`` })
+    }
+  }
+
+  if (msg.content) {
+    blocks.push({ type: 'text', text: msg.content })
+  }
+
+  return blocks
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { messages, quizMode } = await req.json()
     const systemPrompt = quizMode ? QUIZ_SYSTEM_PROMPT : SYSTEM_PROMPT
 
+    const formatted = (messages as IncomingMessage[]).map((m) => ({
+      role: m.role,
+      content: buildContent(m),
+    }))
+
     const stream = anthropic.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
       system: systemPrompt,
-      messages: messages.map((m: { role: string; content: string }) => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      })),
+      messages: formatted,
     })
 
     const encoder = new TextEncoder()
